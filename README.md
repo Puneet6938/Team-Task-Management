@@ -1,57 +1,93 @@
 # Team Task Manager
 
-A production-ready MERN stack team task manager built for the assignment brief: authentication, project and team management, task assignment, status tracking, dashboard metrics, validation, relationships, and role-based access control.
+Team Task Manager is a full-stack MERN assessment project for managing team projects, task ownership, deadlines, and progress visibility. It includes JWT authentication, role-aware access, project membership rules, task assignment, dashboard metrics, and a React workspace UI.
+
+## Assessment Summary
+
+This project was built as a job application assessment to demonstrate:
+
+- Full-stack application structure with separate frontend and backend workspaces
+- REST API design with protected routes and consistent error handling
+- MongoDB data modelling with Mongoose relationships and indexes
+- JWT-based authentication with hashed passwords
+- Role-based permissions for admins, project owners, and members
+- Request validation with Zod
+- A responsive React interface for day-to-day task management
+- Production deployment support where Express can serve the built React app
 
 ## Tech Stack
 
-- Frontend: React, Vite, CSS, lucide-react
-- Backend: Node.js, Express, MongoDB, Mongoose
-- Auth: JWT with hashed passwords
-- Validation: Zod request validation
-- Deployment: Railway-ready monorepo config
+| Area | Tools |
+| --- | --- |
+| Frontend | React, Vite, CSS, lucide-react |
+| Backend | Node.js, Express |
+| Database | MongoDB, Mongoose |
+| Authentication | JWT, bcryptjs |
+| Validation | Zod |
+| Security | Helmet, CORS, express-rate-limit |
+| Deployment | Railway-ready monorepo setup |
 
-## Features
+## Core Features
 
-- Signup and login
+- User signup and login
 - Admin and member roles
-- Project creation with team members
-- Task creation, assignment, priority, due date, and status updates
-- Dashboard cards for projects, tasks, overdue items, and personal workload
-- Project membership checks so members only see accessible work
-- Backend serves the built frontend in production
+- Protected API routes with bearer token authentication
+- Project creation with owner and member relationships
+- Project visibility restricted to admins or assigned members
+- Task creation with assignee, priority, due date, and status
+- Kanban-style task status columns: To do, In progress, Review, Done
+- Task search by title, description, project, or assignee
+- Dashboard metrics for projects, total tasks, overdue items, and personal workload
+- Team directory for available project members
+- Production mode support for serving `frontend/dist` from the backend
 
-## Folder Structure
+## Project Structure
 
 ```text
-backend/
-  src/
-    controllers/
-    middleware/
-    models/
-    routes/
-    validators/
-frontend/
-  src/
-    App.jsx
-    api.js
-    styles.css
+.
+|-- backend/
+|   |-- src/
+|   |   |-- config/         # MongoDB connection
+|   |   |-- controllers/    # Route handlers
+|   |   |-- middleware/     # Auth, validation, and errors
+|   |   |-- models/         # Mongoose schemas
+|   |   |-- routes/         # Express routers
+|   |   |-- utils/          # Shared backend helpers
+|   |   |-- validators/     # Zod schemas
+|   |   |-- app.js
+|   |   `-- server.js
+|   `-- package.json
+|-- frontend/
+|   |-- src/
+|   |   |-- App.jsx
+|   |   |-- api.js
+|   |   |-- constants.js
+|   |   |-- main.jsx
+|   |   |-- styles.css
+|   |   `-- utils.js
+|   `-- package.json
+|-- package.json
+|-- railway.json
+`-- README.md
 ```
 
 ## Local Setup
 
-1. Install dependencies:
+### Prerequisites
+
+- Node.js 20 or newer
+- npm
+- MongoDB Atlas connection string or a local MongoDB instance
+
+### Installation
+
+Install all workspace dependencies from the repository root:
 
 ```bash
 npm install
 ```
 
-2. Create backend environment file:
-
-```bash
-cp backend/.env.example backend/.env
-```
-
-3. Update `backend/.env`:
+Create a backend environment file at `backend/.env`:
 
 ```env
 PORT=5000
@@ -61,97 +97,15 @@ JWT_EXPIRES_IN=7d
 CLIENT_URL=http://localhost:5173
 ```
 
-4. Run the full app:
+Run the frontend and backend together:
 
 ```bash
 npm run dev
 ```
 
-Frontend: `http://localhost:5173`
+Local URLs:
 
-Backend health check: `http://localhost:5000/api/health`
+- Frontend: `http://localhost:5173`
+- Backend health check: `http://localhost:5000/api/health`
 
-Create your first account from the signup screen. Choose `Admin` for the first user so you can create projects and assign tasks.
-
-## Railway Deployment
-
-Create a Railway project and connect this GitHub repository.
-
-### One-service deployment
-
-Use this if the backend serves the built React app.
-
-Set these variables:
-
-```env
-NODE_ENV=production
-MONGODB_URI=<your MongoDB Atlas connection string>
-JWT_SECRET=<long random production secret>
-JWT_EXPIRES_IN=7d
-CLIENT_URL=<your Railway app URL>
-```
-
-If you add MongoDB through Railway's plugin/integration, Railway may expose the connection as `MONGO_URL` or `DATABASE_URL`. The backend accepts those too, but `MONGODB_URI` is recommended for clarity.
-
-Railway will use `railway.json`:
-
-- Build command: `npm install && npm run build`
-- Start command: `npm start`
-
-Because the backend serves `frontend/dist` in production, one Railway service is enough for the full-stack app.
-
-### Separate frontend and backend services
-
-Use this if Railway has two services, like:
-
-- Frontend: `https://team-task-manager-frontend-production-c63d.up.railway.app`
-- Backend: `https://team-task-manager-backend-production-0c2a.up.railway.app`
-
-Backend service variables:
-
-```env
-NODE_ENV=production
-MONGODB_URI=<your MongoDB Atlas connection string>
-JWT_SECRET=<long random production secret>
-JWT_EXPIRES_IN=7d
-CLIENT_URL=https://team-task-manager-frontend-production-c63d.up.railway.app
-```
-
-Backend service commands:
-
-```bash
-Build Command: npm install
-Start Command: npm run start --workspace backend
-```
-
-Frontend service variables:
-
-```env
-VITE_API_URL=https://team-task-manager-backend-production-0c2a.up.railway.app
-```
-
-Frontend service commands:
-
-```bash
-Build Command: npm install && npm run build --workspace frontend
-Start Command: npm run start --workspace frontend
-```
-
-After changing `VITE_API_URL`, redeploy the frontend service because Vite reads that variable at build time.
-
-## API Overview
-
-- `POST /api/auth/signup`
-- `POST /api/auth/login`
-- `GET /api/auth/me`
-- `GET /api/users`
-- `GET /api/dashboard`
-- `GET /api/projects`
-- `POST /api/projects`
-- `GET /api/projects/:id`
-- `PATCH /api/projects/:id`
-- `DELETE /api/projects/:id`
-- `GET /api/tasks`
-- `POST /api/tasks`
-- `PATCH /api/tasks/:id`
-- `DELETE /api/tasks/:id`
+Create the first user from the signup screen. Select `Admin` for the first account so that projects and tasks can be created immediately.
