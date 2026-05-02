@@ -55,8 +55,8 @@ cp backend/.env.example backend/.env
 
 ```env
 PORT=5000
-MONGODB_URI=mongodb+srv://pkpuneet05_db_user:puneet123@cluster0.stfxuip.mongodb.net/TTM
-JWT_SECRET=mysecretkey
+MONGODB_URI=mongodb+srv://<username>:<password>@<cluster-url>/TTM?retryWrites=true&w=majority
+JWT_SECRET=replace-with-a-long-random-secret
 JWT_EXPIRES_IN=7d
 CLIENT_URL=http://localhost:5173
 ```
@@ -77,7 +77,11 @@ Create your first account from the signup screen. Choose `Admin` for the first u
 
 Create a Railway project and connect this GitHub repository.
 
-Set these variables in Railway:
+### One-service deployment
+
+Use this if the backend serves the built React app.
+
+Set these variables:
 
 ```env
 NODE_ENV=production
@@ -87,12 +91,53 @@ JWT_EXPIRES_IN=7d
 CLIENT_URL=<your Railway app URL>
 ```
 
+If you add MongoDB through Railway's plugin/integration, Railway may expose the connection as `MONGO_URL` or `DATABASE_URL`. The backend accepts those too, but `MONGODB_URI` is recommended for clarity.
+
 Railway will use `railway.json`:
 
 - Build command: `npm install && npm run build`
 - Start command: `npm start`
 
 Because the backend serves `frontend/dist` in production, one Railway service is enough for the full-stack app.
+
+### Separate frontend and backend services
+
+Use this if Railway has two services, like:
+
+- Frontend: `https://team-task-manager-frontend-production-c63d.up.railway.app`
+- Backend: `https://team-task-manager-backend-production-0c2a.up.railway.app`
+
+Backend service variables:
+
+```env
+NODE_ENV=production
+MONGODB_URI=<your MongoDB Atlas connection string>
+JWT_SECRET=<long random production secret>
+JWT_EXPIRES_IN=7d
+CLIENT_URL=https://team-task-manager-frontend-production-c63d.up.railway.app
+```
+
+Backend service commands:
+
+```bash
+Build Command: npm install
+Start Command: npm run start --workspace backend
+```
+
+Frontend service variables:
+
+```env
+VITE_API_URL=https://team-task-manager-backend-production-0c2a.up.railway.app
+```
+
+Frontend service commands:
+
+```bash
+Build Command: npm install && npm run build --workspace frontend
+Start Command: npm run start --workspace frontend
+```
+
+After changing `VITE_API_URL`, redeploy the frontend service because Vite reads that variable at build time.
 
 ## API Overview
 

@@ -2,6 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
+import fs from 'fs';
 import morgan from 'morgan';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -50,10 +51,18 @@ app.use('/api/dashboard', dashboardRouter);
 if (process.env.NODE_ENV === 'production') {
   const frontendDist = path.resolve(__dirname, '../../frontend/dist');
   app.use('/api', notFound);
-  app.use(express.static(frontendDist));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(frontendDist, 'index.html'));
-  });
+
+  if (fs.existsSync(path.join(frontendDist, 'index.html'))) {
+    app.use(express.static(frontendDist));
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(frontendDist, 'index.html'));
+    });
+  } else {
+    app.get('/', (req, res) => {
+      res.json({ status: 'ok', service: 'team-task-manager-api' });
+    });
+    app.use(notFound);
+  }
 } else {
   app.use(notFound);
 }
