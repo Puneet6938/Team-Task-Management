@@ -10,7 +10,7 @@ const populateTask = [
 ];
 
 function accessibleProjectQuery(user) {
-  if (user.role === 'admin') return {};
+  if (user.role === 'admin') return { owner: user._id };
   return { members: user._id };
 }
 
@@ -19,7 +19,9 @@ async function findAccessibleTask(taskId, user) {
   if (!task) throw new AppError('Task not found', 404);
 
   const memberIds = task.project.members.map(String);
-  if (user.role !== 'admin' && !memberIds.includes(String(user._id))) {
+  const isOwner = String(task.project.owner) === String(user._id);
+  const isMember = memberIds.includes(String(user._id));
+  if (user.role === 'admin' ? !isOwner : !isMember) {
     throw new AppError('Task not found', 404);
   }
 
@@ -28,7 +30,7 @@ async function findAccessibleTask(taskId, user) {
 
 function canManageTask(task, user) {
   return (
-    user.role === 'admin' ||
+    String(task.project.owner) === String(user._id) ||
     String(task.createdBy) === String(user._id) ||
     String(task.assignee) === String(user._id)
   );
@@ -66,8 +68,8 @@ export const createTask = asyncHandler(async (req, res) => {
     throw new AppError('Assignee must be a member of the selected project', 400);
   }
 
-  if (req.user.role !== 'admin' && String(project.owner) !== String(req.user._id)) {
-    throw new AppError('Only admins or project owners can create tasks', 403);
+  if (String(project.owner) !== String(req.user._id)) {
+    throw new AppError('Only the project owner can create tasks', 403);
   }
 
   const task = await Task.create({
@@ -111,8 +113,8 @@ export const updateTask = asyncHandler(async (req, res) => {
 export const deleteTask = asyncHandler(async (req, res) => {
   const task = await findAccessibleTask(req.params.id, req.user);
 
-  if (req.user.role !== 'admin' && String(task.createdBy) !== String(req.user._id)) {
-    throw new AppError('Only admins or task creators can delete tasks', 403);
+  if (String(task.project.owner) !== String(req.user._id) && String(task.createdBy) !== String(req.user._id)) {
+    throw new AppError('Only the project owner or task creator can delete tasks', 403);
   }
 
   await task.deleteOne();

@@ -3,7 +3,7 @@ import { Task } from '../models/Task.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
 function accessibleProjectQuery(user) {
-  if (user.role === 'admin') return {};
+  if (user.role === 'admin') return { owner: user._id };
   return { members: user._id };
 }
 

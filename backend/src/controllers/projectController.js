@@ -7,7 +7,7 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 const memberSelection = 'name email role title';
 
 function projectQueryFor(user) {
-  if (user.role === 'admin') return {};
+  if (user.role === 'admin') return { owner: user._id };
   return { members: user._id };
 }
 
@@ -77,8 +77,8 @@ export const updateProject = asyncHandler(async (req, res) => {
     throw new AppError('Project not found', 404);
   }
 
-  if (req.user.role !== 'admin' && String(project.owner) !== String(req.user._id)) {
-    throw new AppError('Only admins or project owners can update projects', 403);
+  if (String(project.owner) !== String(req.user._id)) {
+    throw new AppError('Only the project owner can update this project', 403);
   }
 
   const updates = { ...req.validated.body };
@@ -104,8 +104,8 @@ export const deleteProject = asyncHandler(async (req, res) => {
     throw new AppError('Project not found', 404);
   }
 
-  if (req.user.role !== 'admin' && String(project.owner) !== String(req.user._id)) {
-    throw new AppError('Only admins or project owners can delete projects', 403);
+  if (String(project.owner) !== String(req.user._id)) {
+    throw new AppError('Only the project owner can delete this project', 403);
   }
 
   await Task.deleteMany({ project: project._id });
